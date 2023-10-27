@@ -2,7 +2,7 @@ const createDotTemplate = (imageId) => {
   const template = document.createElement("template");
   template.innerHTML = `
     <label for="image-${imageId}"></label>
-    <input type="radio" id="image-${imageId}" name="image-switch" />
+    <input type="radio" id="image-${imageId}" value="image-${imageId}" name="scroll-to-image" />
   `;
 
   return template;
@@ -37,6 +37,7 @@ class Carousel extends HTMLElement {
       gap: var(--gap);
       overflow-x: scroll;
       scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
     }
 
     #controls > svg {
@@ -82,12 +83,28 @@ class Carousel extends HTMLElement {
 
     shadowRoot.appendChild(template.content.cloneNode(true));
     
-    const slots = shadowRoot.querySelector("slot");
+    const slot = shadowRoot.querySelector("slot");
     const countSpan = shadowRoot.querySelector("#count");
-    const count = slots.assignedElements().length;
+    const children = slot.assignedElements();
+    children.forEach((node, i) => {
+      // console.log(node);
+      node.setAttribute("data-image", `image-${i.toString()}`);  
+    });
+    const count = children.length;
     const dotsContainer = shadowRoot.querySelector("#dots");
     [...Array(count).keys()].forEach((n) => {
       dotsContainer.appendChild(createDotTemplate(n).content.cloneNode(true));
+    });
+
+    const dots = shadowRoot.querySelectorAll("input[type='radio'][name='scroll-to-image']");
+    dots.forEach((dot) => {
+      dot.addEventListener("change", (e) => {
+        const image = children.find((node) => node.getAttribute("data-image") === e.target.value);
+
+        if (image) {
+          image.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
     });
     countSpan.textContent = count.toString();
   }
