@@ -7,6 +7,7 @@ A web component implementation of the CRUK React Carousel.
 - [x] Basic web component that carousel's children images
 - [x] Add scroll buttons and indicator
 - [x] Add scroll buttons and indicator functionality naively
+- [ ] Set input indicator state based on image scroll position
 - [ ] Add scroll buttons and indicator functionality with mainly CSS
 - [ ] Remove default scrollbar 
 - [ ] Select a first item as default
