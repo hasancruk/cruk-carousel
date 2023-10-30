@@ -86,6 +86,7 @@ class Carousel extends HTMLElement {
 
     shadowRoot.appendChild(template.content.cloneNode(true));
     
+    const content = shadowRoot.querySelector("#content");
     const slot = shadowRoot.querySelector("slot");
     this.#children = slot.assignedElements();
     this.#children.forEach((node, i) => {
@@ -98,11 +99,22 @@ class Carousel extends HTMLElement {
       dotsContainer.appendChild(createDotTemplate(i).content.cloneNode(true));
     });
 
-    const content = shadowRoot.querySelector("#content");
+    /*
+     * Resources:
+     * - https://stackoverflow.com/questions/442404/retrieve-the-position-x-y-of-an-html-element
+     * - https://stackoverflow.com/questions/66852102/css-scroll-snap-get-active-item
+     */
+    const startImage = this.#children.find((node) => (node.getBoundingClientRect().left - content.getBoundingClientRect().left) >= 0);
+    const startImageId = startImage.getAttribute("data-image");
+    const startInput = shadowRoot.querySelector(`#${startImageId}`);
+
+    if (startInput && !startInput.checked) {
+      startInput.checked = true;
+    }
 
     // Listen scroll event ending. This works correctly because scroll snapping is enabled.
     content.addEventListener("scrollend", (_) => {
-      const currentFocus = this.#children.find((node) => node.getBoundingClientRect().x > 0);
+      const currentFocus = this.#children.find((node) => (node.getBoundingClientRect().left - content.getBoundingClientRect().left) >= 0);
       const imageId = currentFocus.getAttribute("data-image");
       const input = shadowRoot.querySelector(`#${imageId}`);
 
@@ -112,13 +124,11 @@ class Carousel extends HTMLElement {
     });
 
     const dots = shadowRoot.querySelectorAll("input[type='radio'][name='scroll-to-image']");
+
     dots.forEach((dot) => {
       dot.addEventListener("change", (e) => {
         const image = this.#children.find((node) => node.getAttribute("data-image") === e.target.value);
-
-        if (image) {
-          image.scrollIntoView({ behavior: 'smooth' });
-        }
+        image?.scrollIntoView({ behavior: 'smooth' });
       });
     });
 
