@@ -14,7 +14,6 @@ class Carousel extends HTMLElement {
     :host {
       --image-width: 85vw;
       --gap: 1rem;
-      --container-width: 60%;
     }
     
     @media (min-width: 576px) {
@@ -31,9 +30,6 @@ class Carousel extends HTMLElement {
     }
     
     #content {
-      max-width: var(--container-width);
-      margin: 0 auto;
-
       display: flex;
       gap: var(--gap);
       overflow-x: scroll;
