@@ -14,7 +14,7 @@ class Carousel extends HTMLElement {
     :host {
       --image-width: 85vw;
       --gap: 1rem;
-      --container-width: calc(var(--image-width) + 4rem);
+      --container-width: 60%;
     }
     
     @media (min-width: 576px) {
@@ -31,7 +31,8 @@ class Carousel extends HTMLElement {
     }
     
     #content {
-      // max-width: var(--container-width);
+      max-width: var(--container-width);
+      margin: 0 auto;
 
       display: flex;
       gap: var(--gap);
@@ -52,6 +53,8 @@ class Carousel extends HTMLElement {
       padding-block: 1rem;
     }
   `;
+
+  #children;
 
   connectedCallback() {
     const shadowRoot = this.attachShadow({ mode: "open" });
@@ -84,29 +87,42 @@ class Carousel extends HTMLElement {
     shadowRoot.appendChild(template.content.cloneNode(true));
     
     const slot = shadowRoot.querySelector("slot");
-    const countSpan = shadowRoot.querySelector("#count");
-    const children = slot.assignedElements();
-    children.forEach((node, i) => {
-      // console.log(node);
+    this.#children = slot.assignedElements();
+    this.#children.forEach((node, i) => {
       node.setAttribute("data-image", `image-${i.toString()}`);  
     });
-    const count = children.length;
+
+    const countSpan = shadowRoot.querySelector("#count");
     const dotsContainer = shadowRoot.querySelector("#dots");
-    [...Array(count).keys()].forEach((n) => {
-      dotsContainer.appendChild(createDotTemplate(n).content.cloneNode(true));
+    this.#children.forEach((_, i) => {
+      dotsContainer.appendChild(createDotTemplate(i).content.cloneNode(true));
+    });
+
+    const content = shadowRoot.querySelector("#content");
+
+    // Listen scroll event ending. This works correctly because scroll snapping is enabled.
+    content.addEventListener("scrollend", (_) => {
+      const currentFocus = this.#children.find((node) => node.getBoundingClientRect().x > 0);
+      const imageId = currentFocus.getAttribute("data-image");
+      const input = shadowRoot.querySelector(`#${imageId}`);
+
+      if (input && !input.checked) {
+        input.checked = true;
+      }
     });
 
     const dots = shadowRoot.querySelectorAll("input[type='radio'][name='scroll-to-image']");
     dots.forEach((dot) => {
       dot.addEventListener("change", (e) => {
-        const image = children.find((node) => node.getAttribute("data-image") === e.target.value);
+        const image = this.#children.find((node) => node.getAttribute("data-image") === e.target.value);
 
         if (image) {
           image.scrollIntoView({ behavior: 'smooth' });
         }
       });
     });
-    countSpan.textContent = count.toString();
+
+    countSpan.textContent = this.#children.length.toString();
   }
 }
 
