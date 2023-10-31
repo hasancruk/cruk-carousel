@@ -8,6 +8,19 @@ const createDotTemplate = (imageId) => {
   return template;
 };
 
+const debounce = (fn, delay) => {
+  let timer = 0;
+
+  const cancel = () => clearTimeout(timer);
+
+  const result = () => {
+    cancel();
+    timer = setTimeout(fn, delay);
+  };
+
+  return result;
+};
+
 class Carousel extends HTMLElement {
   static tagName = "cruk-carousel";
   static css = `
@@ -106,6 +119,15 @@ class Carousel extends HTMLElement {
 
     if (startInput && !startInput.checked) {
       startInput.checked = true;
+    }
+
+    if (!("onscrollend" in window)) {
+      const fn = debounce(() => {
+        const scrollEndEvent = new Event("scrollend");
+        content.dispatchEvent(scrollEndEvent); 
+      }, 200);
+
+      content.addEventListener("scroll", fn);
     }
 
     // Listen scroll event ending. This works correctly because scroll snapping is enabled.
