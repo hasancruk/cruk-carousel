@@ -228,6 +228,20 @@ class Carousel extends HTMLElement {
         }
       });
     });
+    
+    previousButton.addEventListener("click", (_) => {
+      const previousId = this.#imageIds.indexOf(this.#focusedImageId) - 1;
+      const previousInput = shadowRoot.querySelector(`#${this.#imageIds[previousId]}`);
+      previousInput.checked = true;
+      previousInput.dispatchEvent(new Event("change"));
+    });
+
+    nextButton.addEventListener("click", (_) => {
+      const nextId = this.#imageIds.indexOf(this.#focusedImageId) + 1;
+      const nextInput = shadowRoot.querySelector(`#${this.#imageIds[nextId]}`);
+      nextInput.checked = true;
+      nextInput.dispatchEvent(new Event("change"));
+    });
 
     /*
      * Resources:

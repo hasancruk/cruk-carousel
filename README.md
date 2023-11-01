@@ -10,7 +10,7 @@ A web component implementation of the CRUK React Carousel.
 - [x] Set input indicator state based on image scroll position
 - [x] Conditionally import polyfill if feature isn't available
 - [x] Update markup and add styling to button and inputs
-- [ ] Add functionality to buttons
+- [x] Add functionality to buttons
 - [ ] Explore container queries
 - [ ] Explore how to distribute code that imports polyfills
 - [ ] Remove default scrollbar 
