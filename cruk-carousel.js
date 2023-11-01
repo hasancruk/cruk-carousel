@@ -111,6 +111,7 @@ class Carousel extends HTMLElement {
     /* Styling inspired by Kevin Powell https://youtu.be/fyuao3G-2qg?si=Z4YJ5VrxXJx45Eik */
     #dots input[type="radio"] {
       appearance: none; 
+      cursor: pointer;
       width: 1rem;
       height: 1rem;
       outline: 3px solid var(--controls-color, currentColor);
@@ -130,6 +131,13 @@ class Carousel extends HTMLElement {
 `;
 
   #children;
+  #focusedImageId;
+  #imageIds;
+  
+  constructor() {
+    super();
+    this.#imageIds = [];
+  }
 
   connectedCallback() {
     const shadowRoot = this.attachShadow({ mode: "open" });
@@ -169,16 +177,56 @@ class Carousel extends HTMLElement {
     shadowRoot.appendChild(template.content.cloneNode(true));
     
     const content = shadowRoot.querySelector("#content");
+    const previousButton = shadowRoot.querySelector("#previous");
+    const nextButton = shadowRoot.querySelector("#next");
+
     const slot = shadowRoot.querySelector("slot");
     this.#children = slot.assignedElements();
     this.#children.forEach((node, i) => {
-      node.setAttribute("data-image", `image-${i.toString()}`);  
+      const imageId = `image-${i.toString()}`;
+      node.setAttribute("data-image", imageId);
+      this.#imageIds.push(imageId);
     });
 
     const countSpan = shadowRoot.querySelector("#count");
     const dotsContainer = shadowRoot.querySelector("#dots");
     this.#children.forEach((_, i) => {
       dotsContainer.appendChild(createDotTemplate(i).content.cloneNode(true));
+    });
+    
+    // Listen scroll event ending. This works correctly because scroll snapping is enabled.
+    content.addEventListener("scrollend", (_) => {
+      const currentFocus = this.#children.find((node) => (node.getBoundingClientRect().left - content.getBoundingClientRect().left) >= 0);
+      const imageId = currentFocus.getAttribute("data-image");
+      const input = shadowRoot.querySelector(`#${imageId}`);
+
+      if (input && !input.checked) {
+        input.checked = true;
+        input.dispatchEvent(new Event("change"));
+      }
+    });
+
+    const dots = shadowRoot.querySelectorAll("input[type='radio'][name='scroll-to-image']");
+
+    dots.forEach((dot) => {
+      dot.addEventListener("change", (e) => {
+        const image = this.#children.find((node) => node.getAttribute("data-image") === e.target.value);
+        image?.scrollIntoView({ behavior: 'smooth' });
+
+        this.#focusedImageId = image.getAttribute("data-image");
+        previousButton.removeAttribute("disabled");
+        nextButton.removeAttribute("disabled");
+
+        if (e.target.checked) {
+          if (this.#focusedImageId === this.#imageIds[0]) {
+            previousButton.setAttribute("disabled", "");
+          }
+
+          if (this.#focusedImageId === this.#imageIds[this.#imageIds.length - 1]) {
+            nextButton.setAttribute("disabled", "");
+          }
+        }
+      });
     });
 
     /*
@@ -191,28 +239,10 @@ class Carousel extends HTMLElement {
     const startInput = shadowRoot.querySelector(`#${startImageId}`);
 
     if (startInput && !startInput.checked) {
+      this.#focusedImageId = startImageId;
       startInput.checked = true;
+      startInput.dispatchEvent(new Event("change"));
     }
-
-    // Listen scroll event ending. This works correctly because scroll snapping is enabled.
-    content.addEventListener("scrollend", (_) => {
-      const currentFocus = this.#children.find((node) => (node.getBoundingClientRect().left - content.getBoundingClientRect().left) >= 0);
-      const imageId = currentFocus.getAttribute("data-image");
-      const input = shadowRoot.querySelector(`#${imageId}`);
-
-      if (input && !input.checked) {
-        input.checked = true;
-      }
-    });
-
-    const dots = shadowRoot.querySelectorAll("input[type='radio'][name='scroll-to-image']");
-
-    dots.forEach((dot) => {
-      dot.addEventListener("change", (e) => {
-        const image = this.#children.find((node) => node.getAttribute("data-image") === e.target.value);
-        image?.scrollIntoView({ behavior: 'smooth' });
-      });
-    });
 
     countSpan.textContent = this.#children.length.toString();
   }
