@@ -1,6 +1,6 @@
 // Taken from argyleink/scrollyfills: https://github.com/argyleink/scrollyfills/blob/main/src/scrollend.js 
 
-const supported = "onscrollend" in window
+const supported = "onscrollend" in window;
 
 if (!supported) {
   const scrollendEvent = new Event('scrollend');

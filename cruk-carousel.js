@@ -1,4 +1,8 @@
-import "./scrollend-polyfill.js";
+const supported = "onscrollend" in window;
+
+if (!supported) {
+  await import("./scrollend-polyfill.js");
+}
 
 const createDotTemplate = (imageId) => {
   const template = document.createElement("template");
