@@ -20,6 +20,10 @@ const createDotTemplate = (imageId) => {
 
 class Carousel extends HTMLElement {
   static tagName = "cruk-carousel";
+  static attrs = {
+    startPosition: "start-position",
+  };
+
   static css = `
     img, svg, video, picture {
       display: block;
@@ -40,8 +44,6 @@ class Carousel extends HTMLElement {
       --image-width: 85vw;
       --gap: 1rem;
       --arrow-size: 1.25em;
-      --controls-color: #00007e;
-      --controls-disabled-color: #e6e6e6;
     }
     
     @media (min-width: 576px) {
@@ -94,11 +96,11 @@ class Carousel extends HTMLElement {
     #controls svg {
       display: block;
       width: var(--arrow-size);
-      stroke: var(--controls-color);
+      stroke: var(--controls-color, #00007e);
     }
     
     #controls button:disabled svg {
-      stroke: var(--controls-disabled-color);
+      stroke: var(--controls-disabled-color, #e6e6e6);
     }
     
     #dots {
@@ -114,7 +116,7 @@ class Carousel extends HTMLElement {
       cursor: pointer;
       width: 1rem;
       height: 1rem;
-      outline: 3px solid var(--controls-color, currentColor);
+      outline: 3px solid var(--controls-color, #00007e);
       outline-offset: 3px;
       border-radius: 50%;
       transition: color 0.3s ease 0s, transform 0.3s ease 0s;
@@ -126,7 +128,7 @@ class Carousel extends HTMLElement {
     }
 
     #dots input[type="radio"]:checked {
-      background-color: var(--controls-color);
+      background-color: var(--controls-color, #00007e);
     }
 `;
 
@@ -143,18 +145,22 @@ class Carousel extends HTMLElement {
     const shadowRoot = this.attachShadow({ mode: "open" });
     const template = document.createElement("template");
 
+    const startPosition = parseInt(this.getAttribute(Carousel.attrs.startPosition) || "0");
+
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(Carousel.css);
     shadowRoot.adoptedStyleSheets = [sheet];
 
     template.innerHTML = `
       <div>
-        <p>Carousel: Images (<span id="count">0</span>)</p>
         <div id="content">
           <slot></slot>
         </div>
         <div id="controls">
-          <button type="button" id="previous"> <!-- https://heroicons.com/ --> <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          <button type="button" id="previous">
+            <!-- https://heroicons.com/ -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
             <span class="sr-only">
               Scroll carousel to previous index
@@ -180,22 +186,26 @@ class Carousel extends HTMLElement {
     const previousButton = shadowRoot.querySelector("#previous");
     const nextButton = shadowRoot.querySelector("#next");
 
+    /* Enhance markup */
     const slot = shadowRoot.querySelector("slot");
+    const dotsContainer = shadowRoot.querySelector("#dots");
     this.#children = slot.assignedElements();
     this.#children.forEach((node, i) => {
       const imageId = `image-${i.toString()}`;
       node.setAttribute("data-image", imageId);
       this.#imageIds.push(imageId);
-    });
 
-    const countSpan = shadowRoot.querySelector("#count");
-    const dotsContainer = shadowRoot.querySelector("#dots");
-    this.#children.forEach((_, i) => {
       dotsContainer.appendChild(createDotTemplate(i).content.cloneNode(true));
     });
+
+    /* Attach event listeners */
     
-    // Listen scroll event ending. This works correctly because scroll snapping is enabled.
     content.addEventListener("scrollend", (_) => {
+      /*
+       * Resources:
+       * - https://stackoverflow.com/questions/442404/retrieve-the-position-x-y-of-an-html-element
+       * - https://stackoverflow.com/questions/66852102/css-scroll-snap-get-active-item
+       */
       const currentFocus = this.#children.find((node) => (node.getBoundingClientRect().left - content.getBoundingClientRect().left) >= 0);
       const imageId = currentFocus.getAttribute("data-image");
       const input = shadowRoot.querySelector(`#${imageId}`);
@@ -243,13 +253,9 @@ class Carousel extends HTMLElement {
       nextInput.dispatchEvent(new Event("change"));
     });
 
-    /*
-     * Resources:
-     * - https://stackoverflow.com/questions/442404/retrieve-the-position-x-y-of-an-html-element
-     * - https://stackoverflow.com/questions/66852102/css-scroll-snap-get-active-item
-     */
-    const startImage = this.#children.find((node) => (node.getBoundingClientRect().left - content.getBoundingClientRect().left) >= 0);
-    const startImageId = startImage.getAttribute("data-image");
+    /* Initialize component */
+    
+    const startImageId = this.#imageIds.at(startPosition) ?? this.#imageIds.at(0);
     const startInput = shadowRoot.querySelector(`#${startImageId}`);
 
     if (startInput && !startInput.checked) {
@@ -257,8 +263,6 @@ class Carousel extends HTMLElement {
       startInput.checked = true;
       startInput.dispatchEvent(new Event("change"));
     }
-
-    countSpan.textContent = this.#children.length.toString();
   }
 }
 

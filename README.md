@@ -11,9 +11,11 @@ A web component implementation of the CRUK React Carousel.
 - [x] Conditionally import polyfill if feature isn't available
 - [x] Update markup and add styling to button and inputs
 - [x] Add functionality to buttons
+- [ ] Extract publically exposed CSS variables
 - [ ] Explore container queries
 - [ ] Explore how to distribute code that imports polyfills
 - [ ] Remove default scrollbar 
 - [ ] Select a first item as default
 - [ ] Clear all event listeners on disconnect
-- [ ] A component props for `start-position`, `image-width`, etc 
+- [x] A component props for `start-position` 
+- [ ] A component props for `image-width` based on aspect ratio like Shoelace 
