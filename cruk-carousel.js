@@ -4,20 +4,6 @@ if (!supported) {
   await import("./scrollend-polyfill.js");
 }
 
-const createDotTemplate = (imageId) => {
-  const template = document.createElement("template");
-  template.innerHTML = `
-    <li>
-      <label for="image-${imageId}">
-        <span class="sr-only">Scroll carousel to index ${imageId}</span>
-      </label>
-      <input type="radio" id="image-${imageId}" value="image-${imageId}" name="scroll-to-image" />
-    </li>
-  `;
-
-  return template;
-};
-
 class Carousel extends HTMLElement {
   static tagName = "cruk-carousel";
   static attrs = {
@@ -130,10 +116,41 @@ class Carousel extends HTMLElement {
     #dots input[type="radio"]:checked {
       background-color: var(--controls-color, #00007e);
     }
-`;
+  `;
 
+  /**
+    * @param {number} imageId 
+    * @returns {HTMLTemplateElement} template
+    */
+  static createDotTemplate(imageId) {
+    const template = document.createElement("template");
+    template.innerHTML = `
+      <li>
+        <label for="image-${imageId}">
+          <span class="sr-only">Scroll carousel to index ${imageId}</span>
+        </label>
+        <input type="radio" id="image-${imageId}" value="image-${imageId}" name="scroll-to-image" />
+      </li>
+    `;
+    return template;
+  }
+  
+  /**
+    * @type {Array<Element>}
+    * @private
+    */
   #children;
+
+  /**
+    * @type {string}
+    * @private
+    */
   #focusedImageId;
+
+  /**
+    * @type {Array<string>}
+    * @private
+    */
   #imageIds;
   
   constructor() {
@@ -195,7 +212,7 @@ class Carousel extends HTMLElement {
       node.setAttribute("data-image", imageId);
       this.#imageIds.push(imageId);
 
-      dotsContainer.appendChild(createDotTemplate(i).content.cloneNode(true));
+      dotsContainer.appendChild(Carousel.createDotTemplate(i).content.cloneNode(true));
     });
 
     /* Attach event listeners */

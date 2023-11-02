@@ -11,6 +11,8 @@ A web component implementation of the CRUK React Carousel.
 - [x] Conditionally import polyfill if feature isn't available
 - [x] Update markup and add styling to button and inputs
 - [x] Add functionality to buttons
+- [x] Add JSDoc types
+- [ ] Investigate if event listeners need to be removed
 - [ ] Extract publically exposed CSS variables
 - [ ] Explore container queries
 - [ ] Explore how to distribute code that imports polyfills
