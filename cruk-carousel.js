@@ -119,7 +119,7 @@ class Carousel extends HTMLElement {
     * @param {number} imageId 
     * @returns {HTMLTemplateElement} template
     */
-  static createDotTemplate(imageId) {
+  static #createDotTemplate(imageId) {
     const template = document.createElement("template");
     template.innerHTML = `
       <li>
@@ -142,7 +142,7 @@ class Carousel extends HTMLElement {
     * @type {string | undefined | null}
     * @private
     */
-  #focusedImageId;
+  #currentImage;
 
   /**
     * @type {Array<string>}
@@ -150,9 +150,40 @@ class Carousel extends HTMLElement {
     */
   #imageIds;
   
+  /**
+    * @type {Element | undefined | null}
+    * @private
+    */
+  #previousButton;
+
+  /**
+    * @type {Element | undefined | null}
+    * @private
+    */
+  #nextButton;
+  
   constructor() {
     super();
     this.#imageIds = [];
+  }
+
+  get #imageInView() {
+    return this.#currentImage;
+  }
+
+  /**
+    * @param {string} imageId 
+    * @param {string} imageId 
+    * @returns {undefined}
+    */
+  #setImageInView(imageId, isNativeScroll = false) {
+    this.#currentImage = imageId;
+    this.dispatchEvent(new CustomEvent("imagefocused", {
+      detail: {
+        imageId,
+        isNativeScroll,
+      }, 
+    }));
   }
 
   connectedCallback() {
@@ -197,8 +228,10 @@ class Carousel extends HTMLElement {
     shadowRoot.appendChild(template.content.cloneNode(true));
     
     const content = shadowRoot.querySelector("#content");
-    const previousButton = shadowRoot.querySelector("#previous");
-    const nextButton = shadowRoot.querySelector("#next");
+
+    // TODO What if there is only one image in the carousel?
+    this.#previousButton = shadowRoot.querySelector("#previous");
+    this.#nextButton = shadowRoot.querySelector("#next");
 
     /* Enhance markup */
     const slot = shadowRoot.querySelector("slot");
@@ -209,10 +242,36 @@ class Carousel extends HTMLElement {
       node.setAttribute("data-image", imageId);
       this.#imageIds.push(imageId);
 
-      dotsContainer.appendChild(Carousel.createDotTemplate(i).content.cloneNode(true));
+      dotsContainer.appendChild(Carousel.#createDotTemplate(i).content.cloneNode(true));
     });
 
     /* Attach event listeners */
+
+    this.addEventListener("imagefocused", (e) => {
+      const { imageId, isNativeScroll } = e.detail;
+      const input = shadowRoot.querySelector(`#${imageId}`);
+
+      if (input && !input.checked) {
+        input.checked = true;
+      }
+      
+      if (imageId === this.#imageIds[0]) {
+        this.#previousButton.setAttribute("disabled", "");
+        this.#nextButton.removeAttribute("disabled");
+      } else if (imageId === this.#imageIds[this.#imageIds.length - 1]) {
+        this.#nextButton.setAttribute("disabled", "");
+        this.#previousButton.removeAttribute("disabled");
+      } else {
+        this.#previousButton.removeAttribute("disabled");
+        this.#nextButton.removeAttribute("disabled");
+      }
+
+      if (!isNativeScroll) {
+        const image = this.#children.find((node) => node.getAttribute("data-image") === imageId);
+        // TODO this still causes the scrollend event to fire
+        image?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+      }
+    });
     
     content.addEventListener("scrollend", (_) => {
       /*
@@ -222,61 +281,32 @@ class Carousel extends HTMLElement {
        */
       const currentFocus = this.#children.find((node) => (node.getBoundingClientRect().left - content.getBoundingClientRect().left) >= 0);
       const imageId = currentFocus.getAttribute("data-image");
-      const input = shadowRoot.querySelector(`#${imageId}`);
-
-      if (input && !input.checked) {
-        input.checked = true;
-        input.dispatchEvent(new Event("change"));
-      }
+      
+      this.#setImageInView(imageId, true);
     });
 
     const dots = shadowRoot.querySelectorAll("input[type='radio'][name='scroll-to-image']");
 
     dots.forEach((dot) => {
       dot.addEventListener("change", (e) => {
-        const image = this.#children.find((node) => node.getAttribute("data-image") === e.target.value);
-        image?.scrollIntoView({ behavior: 'smooth' });
-
-        this.#focusedImageId = image.getAttribute("data-image");
-        previousButton.removeAttribute("disabled");
-        nextButton.removeAttribute("disabled");
-
-        if (e.target.checked) {
-          if (this.#focusedImageId === this.#imageIds[0]) {
-            previousButton.setAttribute("disabled", "");
-          }
-
-          if (this.#focusedImageId === this.#imageIds[this.#imageIds.length - 1]) {
-            nextButton.setAttribute("disabled", "");
-          }
-        }
+        this.#setImageInView(e.target.value);
       });
     });
     
-    previousButton.addEventListener("click", (_) => {
-      const previousId = this.#imageIds.indexOf(this.#focusedImageId) - 1;
-      const previousInput = shadowRoot.querySelector(`#${this.#imageIds[previousId]}`);
-      previousInput.checked = true;
-      previousInput.dispatchEvent(new Event("change"));
+    this.#previousButton.addEventListener("click", (_) => {
+      const previousId = this.#imageIds.indexOf(this.#imageInView) - 1;
+      this.#setImageInView(this.#imageIds[previousId]);
     });
 
-    nextButton.addEventListener("click", (_) => {
-      const nextId = this.#imageIds.indexOf(this.#focusedImageId) + 1;
-      const nextInput = shadowRoot.querySelector(`#${this.#imageIds[nextId]}`);
-      nextInput.checked = true;
-      nextInput.dispatchEvent(new Event("change"));
+    this.#nextButton.addEventListener("click", (_) => {
+      const nextId = this.#imageIds.indexOf(this.#imageInView) + 1;
+      this.#setImageInView(this.#imageIds[nextId]);
     });
 
     /* Initialize component */
     
     const startImageId = this.#imageIds.at(startPosition) ?? this.#imageIds.at(0);
-    const startInput = shadowRoot.querySelector(`#${startImageId}`);
-
-    if (startInput && !startInput.checked) {
-      this.#focusedImageId = startImageId;
-      startInput.checked = true;
-      startInput.dispatchEvent(new Event("change"));
-    }
+    this.#setImageInView(startImageId);
   }
 }
 
