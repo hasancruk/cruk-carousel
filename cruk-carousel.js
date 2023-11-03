@@ -58,6 +58,7 @@ class Carousel extends HTMLElement {
       display: flex;
       margin: 0 auto;
       padding-block: 1rem;
+      touch-action: none;
     }
 
     #controls button {
@@ -93,24 +94,20 @@ class Carousel extends HTMLElement {
       list-style: none;
       padding: unset;
       display: flex;
-      gap: 1rem;
+      gap: 2rem;
+      padding-inline: 1rem;
     }
 
     /* Styling inspired by Kevin Powell https://youtu.be/fyuao3G-2qg?si=Z4YJ5VrxXJx45Eik */
     #dots input[type="radio"] {
       appearance: none; 
       cursor: pointer;
-      width: 1rem;
-      height: 1rem;
+      width: 0.8rem;
+      height: 0.8rem;
       outline: 3px solid var(--controls-color, #00007e);
       outline-offset: 3px;
       border-radius: 50%;
       transition: color 0.3s ease 0s, transform 0.3s ease 0s;
-      transform: scale(0.8);
-    }
-
-    #dots input[type="radio"]:hover {
-      transform: scale(1);
     }
 
     #dots input[type="radio"]:checked {
@@ -136,13 +133,13 @@ class Carousel extends HTMLElement {
   }
   
   /**
-    * @type {Array<Element>}
+    * @type {Array<Element> | undefined | null}
     * @private
     */
   #children;
 
   /**
-    * @type {string}
+    * @type {string | undefined | null}
     * @private
     */
   #focusedImageId;
