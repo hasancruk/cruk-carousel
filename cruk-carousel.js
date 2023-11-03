@@ -178,7 +178,7 @@ class Carousel extends HTMLElement {
     */
   #setImageInView(imageId, isNativeScroll = false) {
     this.#currentImage = imageId;
-    this.dispatchEvent(new CustomEvent("imagefocused", {
+    this.dispatchEvent(new CustomEvent("image-focused", {
       detail: {
         imageId,
         isNativeScroll,
@@ -247,7 +247,7 @@ class Carousel extends HTMLElement {
 
     /* Attach event listeners */
 
-    this.addEventListener("imagefocused", (e) => {
+    this.addEventListener("image-focused", (e) => {
       const { imageId, isNativeScroll } = e.detail;
       const input = shadowRoot.querySelector(`#${imageId}`);
 
