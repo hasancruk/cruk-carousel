@@ -161,10 +161,29 @@ class Carousel extends HTMLElement {
     * @private
     */
   #nextButton;
+
+  /**
+    * @type {Element | undefined | null}
+    * @private
+    */
+  #content;
+
+  #handleImageFocused;
+  #handleScrollEnd;
+
+  /**
+    * @typedef {{ element: Element, handler: (e: Event) => void}} DotsHandler
+    *
+    * @type {Array<DotsHandler>}
+    */
+  #dotsHandlers;
+  #handlePreviousButton;
+  #handleNextButton;
   
   constructor() {
     super();
     this.#imageIds = [];
+    this.#dotsHandlers = [];
   }
 
   get #imageInView() {
@@ -189,13 +208,11 @@ class Carousel extends HTMLElement {
   connectedCallback() {
     const shadowRoot = this.attachShadow({ mode: "open" });
     const template = document.createElement("template");
-
     const startPosition = parseInt(this.getAttribute(Carousel.attrs.startPosition) || "0");
 
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(Carousel.css);
     shadowRoot.adoptedStyleSheets = [sheet];
-
     template.innerHTML = `
       <div>
         <div id="content">
@@ -224,11 +241,9 @@ class Carousel extends HTMLElement {
         </div>
       </div>
     `;
-
     shadowRoot.appendChild(template.content.cloneNode(true));
     
-    const content = shadowRoot.querySelector("#content");
-
+    this.#content = shadowRoot.querySelector("#content");
     // TODO What if there is only one image in the carousel?
     this.#previousButton = shadowRoot.querySelector("#previous");
     this.#nextButton = shadowRoot.querySelector("#next");
@@ -246,8 +261,7 @@ class Carousel extends HTMLElement {
     });
 
     /* Attach event listeners */
-
-    this.addEventListener("image-focused", (e) => {
+    this.#handleImageFocused = (e) => {
       const { imageId, isNativeScroll } = e.detail;
       const input = shadowRoot.querySelector(`#${imageId}`);
 
@@ -271,42 +285,53 @@ class Carousel extends HTMLElement {
         // TODO this still causes the scrollend event to fire
         image?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
       }
-    });
-    
-    content.addEventListener("scrollend", (_) => {
+    };
+    this.addEventListener("image-focused", this.#handleImageFocused);
+
+    this.#handleScrollEnd = () => {
       /*
        * Resources:
        * - https://stackoverflow.com/questions/442404/retrieve-the-position-x-y-of-an-html-element
        * - https://stackoverflow.com/questions/66852102/css-scroll-snap-get-active-item
        */
-      const currentFocus = this.#children.find((node) => (node.getBoundingClientRect().left - content.getBoundingClientRect().left) >= 0);
+      const currentFocus = this.#children.find((node) => (node.getBoundingClientRect().left - this.#content.getBoundingClientRect().left) >= 0);
       const imageId = currentFocus.getAttribute("data-image");
       
       this.#setImageInView(imageId, true);
-    });
+    }; 
+    this.#content.addEventListener("scrollend", this.#handleScrollEnd);
 
     const dots = shadowRoot.querySelectorAll("input[type='radio'][name='scroll-to-image']");
-
     dots.forEach((dot) => {
-      dot.addEventListener("change", (e) => {
+      const handleDotsChanged = (e) => {
         this.#setImageInView(e.target.value);
-      });
+      };
+      this.#dotsHandlers.push({ element: dot, handler: handleDotsChanged });
+      dot.addEventListener("change", handleDotsChanged);
     });
-    
-    this.#previousButton.addEventListener("click", (_) => {
+
+    this.#handlePreviousButton = () => {
       const previousId = this.#imageIds.indexOf(this.#imageInView) - 1;
       this.#setImageInView(this.#imageIds[previousId]);
-    });
-
-    this.#nextButton.addEventListener("click", (_) => {
+    };
+    this.#handleNextButton = () => {
       const nextId = this.#imageIds.indexOf(this.#imageInView) + 1;
       this.#setImageInView(this.#imageIds[nextId]);
-    });
+    };
+    this.#previousButton.addEventListener("click", this.#handlePreviousButton);
+    this.#nextButton.addEventListener("click", this.#handleNextButton);
 
     /* Initialize component */
-    
     const startImageId = this.#imageIds.at(startPosition) ?? this.#imageIds.at(0);
     this.#setImageInView(startImageId);
+  }
+
+  disconnectedCallback() {
+    this.#dotsHandlers.forEach(({ element, handler }) => element.removeEventListener("change", handler));
+    this.#content.removeEventListener("scrollend", this.#handleScrollEnd);
+    this.removeEventListener("image-focused", this.#handleImageFocused);
+    this.#previousButton.removeEventListener("click", this.#handlePreviousButton);
+    this.#nextButton.removeEventListener("click", this.#handleNextButton);
   }
 }
 

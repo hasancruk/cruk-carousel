@@ -18,6 +18,6 @@ A web component implementation of the CRUK React Carousel.
 - [ ] Explore how to distribute code that imports polyfills
 - [ ] Remove default scrollbar 
 - [x] Select a first item as default
-- [ ] Clear all event listeners on disconnect
+- [x] Clear all event listeners on disconnect
 - [x] A component props for `start-position` 
 - [ ] A component props for `image-width` based on aspect ratio like Shoelace 
