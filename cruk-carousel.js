@@ -180,6 +180,9 @@ class Carousel extends HTMLElement {
   #handlePreviousButton;
   #handleNextButton;
 
+  /**
+    * @type {number | undefined | null}
+    */
   #initializationTimer;
   
   constructor() {
@@ -327,9 +330,12 @@ class Carousel extends HTMLElement {
 
     /* Initialize component */
     const startImageId = this.#imageIds.at(startPosition) ?? this.#imageIds.at(0);
-    this.#initializationTimer = setTimeout(() => {
-      this.#setImageInView(startImageId);
-    }, 500);
+    
+    requestAnimationFrame(() => {
+      this.#initializationTimer = setTimeout(() => {
+        this.#setImageInView(startImageId);
+      }, 500);
+    });
   }
 
   disconnectedCallback() {
