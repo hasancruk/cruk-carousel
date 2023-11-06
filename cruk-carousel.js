@@ -179,6 +179,8 @@ class Carousel extends HTMLElement {
   #dotsHandlers;
   #handlePreviousButton;
   #handleNextButton;
+
+  #initializationTimer;
   
   constructor() {
     super();
@@ -282,8 +284,8 @@ class Carousel extends HTMLElement {
 
       if (!isNativeScroll) {
         const image = this.#children.find((node) => node.getAttribute("data-image") === imageId);
-        // TODO this still causes the scrollend event to fire
-        image?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+        const scrollLeft = image.offsetLeft - this.#content.offsetLeft;
+        this.#content.scrollLeft = scrollLeft;
       }
     };
     this.addEventListener("image-focused", this.#handleImageFocused);
@@ -296,8 +298,10 @@ class Carousel extends HTMLElement {
        */
       const currentFocus = this.#children.find((node) => (node.getBoundingClientRect().left - this.#content.getBoundingClientRect().left) >= 0);
       const imageId = currentFocus.getAttribute("data-image");
-      
-      this.#setImageInView(imageId, true);
+
+      if (this.#imageInView !== imageId) {
+        this.#setImageInView(imageId, true);
+      }
     }; 
     this.#content.addEventListener("scrollend", this.#handleScrollEnd);
 
@@ -323,10 +327,13 @@ class Carousel extends HTMLElement {
 
     /* Initialize component */
     const startImageId = this.#imageIds.at(startPosition) ?? this.#imageIds.at(0);
-    this.#setImageInView(startImageId);
+    this.#initializationTimer = setTimeout(() => {
+      this.#setImageInView(startImageId);
+    }, 500);
   }
 
   disconnectedCallback() {
+    clearTimeout(this.#initializationTimer);
     this.#dotsHandlers.forEach(({ element, handler }) => element.removeEventListener("change", handler));
     this.#content.removeEventListener("scrollend", this.#handleScrollEnd);
     this.removeEventListener("image-focused", this.#handleImageFocused);
