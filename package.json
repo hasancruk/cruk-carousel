@@ -1,12 +1,25 @@
 {
-  "name": "cruk-carousel",
-  "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "name": "@hasancruk/cruk-carousel",
+  "version": "0.1.0",
+  "description": "This is an experimental Carousel component that closely mimicks CRUK's React Carousel component.",
+  "main": "cruk-carousel.js",
   "scripts": {
     "start": "npx serve ."
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hasancruk/cruk-carousel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hasancruk/cruk-carousel/issues"
+  },
+  "keywords": ["carousel", "web component", "vanilla", "shadow dom"],
+  "author": {
+    "name": "Hasan Ali",
+    "email": "hasan.ali@cancer.org.uk",
+    "url": "https://www.hasanhaja.com/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/hasancruk/cruk-carousel#cruk-carousel"
+}
 }
