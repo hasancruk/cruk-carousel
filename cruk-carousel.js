@@ -27,27 +27,30 @@ class Carousel extends HTMLElement {
     }
 
     :host {
-      --image-width: 85vw;
-      --gap: 1rem;
-      --arrow-size: 1.25em;
+      --_carousel__image-width: 85vw;
+      --_carousel__gap: 1rem;
+      --_carousel__arrow-size: 1.25em;
+
+      --_carousel__controls-color: var(--cruk-carousel__controls-color, #00007e);
+      --_carousel__controls-disabled-color: var(--cruk-carousel__controls-disabled-color, #e6e6e6);
     }
     
     @media (min-width: 576px) {
       :host {
-        --image-width: 500px;
-        --gap: 2.5rem;
+        --_carousel__image-width: 500px;
+        --_carousel__gap: 2.5rem;
       }
     }
 
     ::slotted(img) {
-      width: var(--image-width);
+      width: var(--_carousel__image-width);
       display: block;
       scroll-snap-align: center;
     }
     
     #content {
       display: flex;
-      gap: var(--gap);
+      gap: var(--_carousel__gap);
       overflow-x: scroll;
       scroll-snap-type: x mandatory;
       scroll-behavior: smooth;
@@ -82,12 +85,12 @@ class Carousel extends HTMLElement {
     
     #controls svg {
       display: block;
-      width: var(--arrow-size);
-      stroke: var(--controls-color, #00007e);
+      width: var(--_carousel__arrow-size);
+      stroke: var(--_carousel__controls-color);
     }
     
     #controls button:disabled svg {
-      stroke: var(--controls-disabled-color, #e6e6e6);
+      stroke: var(--_carousel__controls-disabled-color);
     }
     
     #dots {
@@ -104,14 +107,14 @@ class Carousel extends HTMLElement {
       cursor: pointer;
       width: 0.8rem;
       height: 0.8rem;
-      outline: 3px solid var(--controls-color, #00007e);
+      outline: 3px solid var(--_carousel__controls-color);
       outline-offset: 3px;
       border-radius: 50%;
       transition: color 0.3s ease 0s, transform 0.3s ease 0s;
     }
 
     #dots input[type="radio"]:checked {
-      background-color: var(--controls-color, #00007e);
+      background-color: var(--_carousel__controls-color);
     }
   `;
 
@@ -133,23 +136,35 @@ class Carousel extends HTMLElement {
   }
   
   /**
-    * @type {Array<Element> | undefined | null}
+    * This is used to find the image element based on the dot that was clicked.
+    *
+    * @type {Map<string, Element> | undefined | null}
     * @private
     */
   #children;
+
+  /**
+    * This is used to find the image that is currently in view after a native scroll.
+    *
+    * @type {Array<Element> | undefined | null}
+    * @private
+    */
+  #childrenNodes;
+
+  /**
+    * This is used to programmatically change the current index of the image. This is also used to check if the selected image is either the first or the last image so the buttons can be disabled.
+    *
+    * @type {Array<string>}
+    * @private
+    */
+  #imageIds;
 
   /**
     * @type {string | undefined | null}
     * @private
     */
   #currentImage;
-
-  /**
-    * @type {Array<string>}
-    * @private
-    */
-  #imageIds;
-  
+    
   /**
     * @type {Element | undefined | null}
     * @private
@@ -189,6 +204,8 @@ class Carousel extends HTMLElement {
     super();
     this.#imageIds = [];
     this.#dotsHandlers = [];
+    this.#childrenNodes = [];
+    this.#children = new Map();
   }
 
   get #imageInView() {
@@ -256,15 +273,16 @@ class Carousel extends HTMLElement {
     /* Enhance markup */
     const slot = shadowRoot.querySelector("slot");
     const dotsContainer = shadowRoot.querySelector("#dots");
-    this.#children = slot.assignedElements();
-    this.#children.forEach((node, i) => {
+    this.#childrenNodes = slot.assignedElements();
+    this.#childrenNodes.forEach((node, i) => {
       const imageId = `image-${i.toString()}`;
       node.setAttribute("data-image", imageId);
+      this.#children.set(imageId, node);
       this.#imageIds.push(imageId);
 
       dotsContainer.appendChild(Carousel.#createDotTemplate(i).content.cloneNode(true));
     });
-
+    
     /* Attach event listeners */
     this.#handleImageFocused = (e) => {
       const { imageId, isNativeScroll } = e.detail;
@@ -286,7 +304,7 @@ class Carousel extends HTMLElement {
       }
 
       if (!isNativeScroll) {
-        const image = this.#children.find((node) => node.getAttribute("data-image") === imageId);
+        const image = this.#children.get(imageId);
         const scrollLeft = image.offsetLeft - this.#content.offsetLeft;
         this.#content.scrollLeft = scrollLeft;
       }
@@ -299,7 +317,7 @@ class Carousel extends HTMLElement {
        * - https://stackoverflow.com/questions/442404/retrieve-the-position-x-y-of-an-html-element
        * - https://stackoverflow.com/questions/66852102/css-scroll-snap-get-active-item
        */
-      const currentFocus = this.#children.find((node) => (node.getBoundingClientRect().left - this.#content.getBoundingClientRect().left) >= 0);
+      const currentFocus = this.#childrenNodes.find((node) => (node.getBoundingClientRect().left - this.#content.getBoundingClientRect().left) >= 0);
       const imageId = currentFocus.getAttribute("data-image");
 
       if (this.#imageInView !== imageId) {
