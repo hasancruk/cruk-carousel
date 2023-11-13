@@ -27,27 +27,30 @@ class Carousel extends HTMLElement {
     }
 
     :host {
-      --image-width: 85vw;
-      --gap: 1rem;
-      --arrow-size: 1.25em;
+      --_carousel__image-width: 85vw;
+      --_carousel__gap: 1rem;
+      --_carousel__arrow-size: 1.25em;
+
+      --_carousel__controls-color: var(--cruk-carousel__controls-color, #00007e);
+      --_carousel__controls-disabled-color: var(--cruk-carousel__controls-disabled-color, #e6e6e6);
     }
     
     @media (min-width: 576px) {
       :host {
-        --image-width: 500px;
-        --gap: 2.5rem;
+        --_carousel__image-width: 500px;
+        --_carousel__gap: 2.5rem;
       }
     }
 
     ::slotted(img) {
-      width: var(--image-width);
+      width: var(--_carousel__image-width);
       display: block;
       scroll-snap-align: center;
     }
     
     #content {
       display: flex;
-      gap: var(--gap);
+      gap: var(--_carousel__gap);
       overflow-x: scroll;
       scroll-snap-type: x mandatory;
       scroll-behavior: smooth;
@@ -82,12 +85,12 @@ class Carousel extends HTMLElement {
     
     #controls svg {
       display: block;
-      width: var(--arrow-size);
-      stroke: var(--controls-color, #00007e);
+      width: var(--_carousel__arrow-size);
+      stroke: var(--_carousel__controls-color);
     }
     
     #controls button:disabled svg {
-      stroke: var(--controls-disabled-color, #e6e6e6);
+      stroke: var(--_carousel__controls-disabled-color);
     }
     
     #dots {
@@ -104,14 +107,14 @@ class Carousel extends HTMLElement {
       cursor: pointer;
       width: 0.8rem;
       height: 0.8rem;
-      outline: 3px solid var(--controls-color, #00007e);
+      outline: 3px solid var(--_carousel__controls-color);
       outline-offset: 3px;
       border-radius: 50%;
       transition: color 0.3s ease 0s, transform 0.3s ease 0s;
     }
 
     #dots input[type="radio"]:checked {
-      background-color: var(--controls-color, #00007e);
+      background-color: var(--_carousel__controls-color);
     }
   `;
 
