@@ -4,7 +4,6 @@ A web component implementation of the CRUK React Carousel.
 
 ## Todo
 
-- [ ] Clean up publically exposed CSS variables
 - [ ] Explore container queries
 - [ ] Explore how to distribute code that imports polyfills
 - [ ] Remove default scrollbar 
