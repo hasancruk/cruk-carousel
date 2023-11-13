@@ -2,6 +2,8 @@
 
 A web component implementation of the CRUK React Carousel.
 
+- [Demo](https://hasancruk.github.io/hasancruk/cruk-carousel/demo.html)
+
 ## Todo
 
 - [ ] Explore container queries
