@@ -2,7 +2,7 @@
 
 A web component implementation of the CRUK React Carousel.
 
-- [Demo](https://hasancruk.github.io/hasancruk/cruk-carousel/demo.html)
+- [Demo](https://hasancruk.github.io/cruk-carousel/demo.html)
 
 ## Todo
 
