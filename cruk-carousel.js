@@ -11,7 +11,7 @@ class Carousel extends HTMLElement {
   };
 
   static css = `
-    img, svg, video, picture {
+    img, svg, video, picture, ::slotted(img), ::slotted(svg), ::slotted(video), ::slotted(picture) {
       display: block;
       max-width: 100%;
     }
@@ -83,13 +83,13 @@ class Carousel extends HTMLElement {
       cursor: not-allowed;
     }
     
-    #controls svg {
+    #controls svg, #controls ::slotted(svg) {
       display: block;
       width: var(--_carousel__arrow-size);
       stroke: var(--_carousel__controls-color);
     }
     
-    #controls button:disabled svg {
+    #controls button:disabled svg, #controls button:disabled ::slotted(svg) {
       stroke: var(--_carousel__controls-disabled-color);
     }
     
@@ -242,20 +242,24 @@ class Carousel extends HTMLElement {
         </div>
         <div id="controls">
           <button type="button" id="previous">
-            <!-- https://heroicons.com/ -->
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
+            <slot name="previous-btn-svg">
+              <!-- https://heroicons.com/ -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </slot>
             <span class="sr-only">
               Scroll carousel to previous index
             </span>
           </button>
           <ul id="dots"></ul>
           <button type="button" id="next">
-            <!-- https://heroicons.com/ -->
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
+            <slot name="next-btn-svg">
+              <!-- https://heroicons.com/ -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </slot>
             <span class="sr-only">
               Scroll carousel to next index
             </span>
